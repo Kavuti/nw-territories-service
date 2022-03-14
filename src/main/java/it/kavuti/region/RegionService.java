@@ -5,6 +5,7 @@ import it.kavuti.territory.TerritoryConverter;
 import it.kavuti.territory.TerritoryDTO;
 import it.kavuti.territory.TerritoryRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +35,13 @@ public class RegionService {
 
     public Page<RegionDTO> search(String query, Pageable pageable) {
         log.debug("Searching Regions for query {}", query);
-        Page<Region> persistentRegions = repository.findByDescriptionContainingIgnoreCase(query, pageable);
+        Page<Region> persistentRegions;
+        if (StringUtils.isBlank(query)) {
+            persistentRegions = repository.findAll(pageable);
+        }
+        else {
+            persistentRegions = repository.findByDescriptionContainingIgnoreCase(query, pageable);
+        }
         log.debug("Found {} regions for query {} and pageable {}", persistentRegions.getTotalElements(), query, pageable);
         return persistentRegions.map(converter::convert);
     }
@@ -78,7 +85,7 @@ public class RegionService {
         checkExistence(id);
         log.debug("Deleting region with id {}", id);
         repository.deleteById(id);
-        log.debug("Region with id {} successfully deleted");
+        log.debug("Region with id {} successfully deleted", id);
     }
 
     public List<TerritoryDTO> getTerritories(Long id) {
